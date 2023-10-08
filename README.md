@@ -311,7 +311,7 @@ But you can get an excerpt of it in the CoreData CaseStudy!
 
 ## What's next?
 
-This is only the beginning! There are many other dependencies to implement: `Speech`, `Vision`, `KeyChain`, etc…
+This is only the beginning! There are many other dependencies to implement: `Speech`, `Vision`, etc…
 The only rule, for now, is that it shouldn't require a third-party dependency itself, and should work
 on `Apple` or `Linux` platforms out of the box.
 If you want to contribute a dependency, feel free to open a thread in the discussions!

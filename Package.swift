@@ -39,12 +39,14 @@ let package = Package(
     .library(name: "DependenciesAdditions", targets: ["DependenciesAdditions"]),
     .library(name: "_AppStorageDependency", targets: ["_AppStorageDependency"]),
     .library(name: "_CoreDataDependency", targets: ["_CoreDataDependency"]),
+    .library(name: "_KeychainDependency", targets: ["_KeychainDependency"]),
     .library(name: "_NotificationDependency", targets: ["_NotificationDependency"]),
     .library(name: "_SwiftUIDependency", targets: ["_SwiftUIDependency"]),
   ],
   dependencies: [
     .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "0.1.0"),
     .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
+		.package(url: "https://github.com/kishikawakatsumi/KeychainAccess", from: "4.2.2"),
   ],
   targets: [
 
@@ -226,6 +228,18 @@ let package = Package(
         "DeviceDependency"
       ]
     ),
+	
+		.target(
+			// N.B. Keychain requires a Host Application, thus cannot be
+			// tested by SPM. Tests for `_KeychainDependency` are to be
+			// found inside `CaseStudies.xcodeproj`'s target `CaseStudiesTests`.
+			name: "_KeychainDependency",
+			dependencies: [
+				.product(name: "Dependencies", package: "swift-dependencies"),
+				"KeychainAccess",
+				"DependenciesAdditionsBasics",
+			]
+		),
 
     .target(
       name: "LoggerDependency",
@@ -367,7 +381,6 @@ let package = Package(
 
 /// Temporary dependencies
 // define("CryptoDependency")
-// define("KeyChainDependency")
 // define("Version")?
 
 // define("Dependency", dependencies: "Base", testingDependencies: "TestSupport")
@@ -417,13 +430,13 @@ func addIndividualProducts() {
 }
 //addIndividualProducts()
 
-//for target in package.targets {
-//  target.swiftSettings = target.swiftSettings ?? []
-//  target.swiftSettings?.append(
-//    .unsafeFlags([
-//      "-Xfrontend", "-warn-concurrency",
-//      "-Xfrontend", "-enable-actor-data-race-checks",
-//      //      "-enable-library-evolution",
-//    ])
-//  )
-//}
+for target in package.targets {
+  target.swiftSettings = target.swiftSettings ?? []
+  target.swiftSettings?.append(
+    .unsafeFlags([
+      "-Xfrontend", "-warn-concurrency",
+      "-Xfrontend", "-enable-actor-data-race-checks",
+      //      "-enable-library-evolution",
+    ])
+  )
+}

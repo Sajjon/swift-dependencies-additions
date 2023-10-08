@@ -15,6 +15,7 @@ class StudiesModel: ObservableObject {
     case loggerStudy(LoggerStudy)
     case swiftUIEnvironmentStudy(SwiftUIEnvironmentStudy)
     case userNotifications(UserNotificationsStudy)
+    case keychain(KeychainStudy)
   }
 
   @Dependency(\.self) var dependencies
@@ -75,6 +76,12 @@ class StudiesModel: ObservableObject {
       .userNotifications(.init())
     }
   }
+	
+	func keychainStudyButtonTapped() {
+		self.destination = withDependencies(from: self) {
+			.keychain(.init())
+		}
+	}
 }
 
 struct StudiesView: View {
@@ -132,6 +139,12 @@ struct StudiesView: View {
         } label: {
           Label("SwiftUI Environment", systemImage: "swift")
         }
+				
+				Button {
+					self.model.keychainStudyButtonTapped()
+				} label: {
+					Label("Keychain", systemImage: "key")
+				}
       }
       .buttonStyle(.navigation)
       .navigationTitle("Case Studies")
@@ -185,6 +198,12 @@ struct StudiesView: View {
       ) { $model in
         UserNotificationsStudyView(model: model)
       }
+			.navigationDestination(
+				unwrapping: self.$model.destination,
+				case: /StudiesModel.Destination.keychain
+			) { $model in
+				KeychainStudyView(model: model)
+			}
     }
   }
 }

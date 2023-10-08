@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		485BD8EB2AD3070D00B549BC /* KeychainDependencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485BD8EA2AD3070D00B549BC /* KeychainDependencyTests.swift */; };
+		485BD8ED2AD335F500B549BC /* KeychainStudy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485BD8EC2AD335F500B549BC /* KeychainStudy.swift */; };
+		485BD8EF2AD337A600B549BC /* _KeychainDependency in Frameworks */ = {isa = PBXBuildFile; productRef = 485BD8EE2AD337A600B549BC /* _KeychainDependency */; };
 		E95149892968A3C9004E397A /* _AppStorageDependency in Frameworks */ = {isa = PBXBuildFile; productRef = E95149882968A3C9004E397A /* _AppStorageDependency */; };
 		E951498B2968A3C9004E397A /* _CoreDataDependency in Frameworks */ = {isa = PBXBuildFile; productRef = E951498A2968A3C9004E397A /* _CoreDataDependency */; };
 		E951498D2968A3C9004E397A /* _NotificationDependency in Frameworks */ = {isa = PBXBuildFile; productRef = E951498C2968A3C9004E397A /* _NotificationDependency */; };
@@ -43,6 +46,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		485BD8EA2AD3070D00B549BC /* KeychainDependencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainDependencyTests.swift; sourceTree = "<group>"; };
+		485BD8EC2AD335F500B549BC /* KeychainStudy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeychainStudy.swift; sourceTree = "<group>"; };
 		E9672A7C29620A2E00CFB3F5 /* BatteryStatusStudy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusStudy.swift; sourceTree = "<group>"; };
 		E967FA322963A90500034419 /* UserNotificationsStudy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserNotificationsStudy.swift; sourceTree = "<group>"; };
 		E967FA342963AEF200034419 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -79,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				485BD8EF2AD337A600B549BC /* _KeychainDependency in Frameworks */,
 				E951498B2968A3C9004E397A /* _CoreDataDependency in Frameworks */,
 				E95149912968A3C9004E397A /* DependenciesAdditions in Frameworks */,
 				E95149932968A3C9004E397A /* SwiftUINavigation in Frameworks */,
@@ -119,6 +125,7 @@
 		E992398C295C917200586AA0 /* Studies */ = {
 			isa = PBXGroup;
 			children = (
+				485BD8EC2AD335F500B549BC /* KeychainStudy.swift */,
 				E9672A7E29620B3A00CFB3F5 /* Notifications */,
 				E992398D295C917200586AA0 /* LoggerStudy.swift */,
 				E992398E295C917200586AA0 /* SwiftUIEnvironmentStudy.swift */,
@@ -144,6 +151,7 @@
 				E9C3B93E29596715000263AD /* CaseStudiesTests.swift */,
 				E9C3B945295967AE000263AD /* AppStorageStudyTests.swift */,
 				E9EE247C29629AC600D0173E /* BatteryStateStudyTests.swift */,
+				485BD8EA2AD3070D00B549BC /* KeychainDependencyTests.swift */,
 			);
 			path = CaseStudiesTests;
 			sourceTree = "<group>";
@@ -224,6 +232,7 @@
 				E951498E2968A3C9004E397A /* _SwiftUIDependency */,
 				E95149902968A3C9004E397A /* DependenciesAdditions */,
 				E95149922968A3C9004E397A /* SwiftUINavigation */,
+				485BD8EE2AD337A600B549BC /* _KeychainDependency */,
 			);
 			productName = "Dependencies Additions Case Studies";
 			productReference = E9DC4C422958F9BB003F0CA8 /* CaseStudies.app */;
@@ -296,6 +305,7 @@
 			files = (
 				E9EE247D29629AC600D0173E /* BatteryStateStudyTests.swift in Sources */,
 				E9C3B93F29596715000263AD /* CaseStudiesTests.swift in Sources */,
+				485BD8EB2AD3070D00B549BC /* KeychainDependencyTests.swift in Sources */,
 				E9C3B946295967AE000263AD /* AppStorageStudyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -316,6 +326,7 @@
 				E992399C295C917200586AA0 /* LoggerStudy.swift in Sources */,
 				E99239A6295C917200586AA0 /* CaseStudiesApp.swift in Sources */,
 				E992399F295C917200586AA0 /* CompressionStudy.swift in Sources */,
+				485BD8ED2AD335F500B549BC /* KeychainStudy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -612,6 +623,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		485BD8EE2AD337A600B549BC /* _KeychainDependency */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = _KeychainDependency;
+		};
 		E95149882968A3C9004E397A /* _AppStorageDependency */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = _AppStorageDependency;
