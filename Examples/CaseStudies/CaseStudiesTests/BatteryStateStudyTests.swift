@@ -1,3 +1,4 @@
+#if canImport(UIKit)
 import Dependencies
 import DependenciesAdditionsBasics
 import XCTest
@@ -52,3 +53,4 @@ final class BatteryStatusStudyTests: XCTestCase {
     }
   }
 }
+#endif // canImport(UIKit)
