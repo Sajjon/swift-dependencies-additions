@@ -28,6 +28,18 @@ extension Keychain {
 		}
 		case added(Add)
 		case removed(Removed)
+		public var added: Bool {
+			switch self {
+				case .added: return true
+				case .removed: return false
+			}
+		}
+		public var removed: Bool {
+			switch self {
+				case .added: return false
+				case .removed: return true
+			}
+		}
 	}
 }
 

@@ -10,21 +10,23 @@ import SwiftUI
 import DependenciesAdditions
 @_spi(Internal) import _KeychainDependency
 
-private let noAuthRandomKey = "noAuthRandomKey"
-private let authRandomKey = "authRandomKey"
+let studyWithAuthKey = "studyWithAuthKey"
+let studyWithoutAuthKey = "studyWithoutAuthKey"
 
 @MainActor
 final class KeychainStudy: ObservableObject {
 	
 	@Published var status: Status = .new
+	@Published var eventForAuthKey: Keychain.Event?
+	@Published var eventForNoAuthKey: Keychain.Event?
 	@Dependency(\.keychain) var keychain
 	
 	func initialize() async {
 		status = .initializing
 		do {
 			try await keychain.removeAllItems()
-			let noAuth = try await keychain.dataWithoutAuth(forKey: noAuthRandomKey)
-			let auth = try await keychain.dataWithoutAuth(forKey: authRandomKey)
+			let noAuth = try await keychain.dataWithoutAuth(forKey: studyWithoutAuthKey)
+			let auth = try await keychain.dataWithoutAuth(forKey: studyWithAuthKey)
 			if noAuth == nil && auth == nil {
 				status = .initialized("keychain reset")
 			} else {
@@ -39,7 +41,7 @@ final class KeychainStudy: ObservableObject {
 		await _doTest {
 			try await self.keychain
 				.authGetSavedDataElseSaveNewRandom(
-					key: "studyWithAuth"
+					key: studyWithAuthKey
 				)
 		}
 	}
@@ -47,7 +49,7 @@ final class KeychainStudy: ObservableObject {
 	func doTestNoAuth() async {
 		await _doTest {
 			try await self.keychain.noAuthGetSavedDataElseSaveNewRandom(
-				key: "studyWithoutAuth"
+				key: studyWithoutAuthKey
 			)
 		}
 	}
@@ -90,6 +92,10 @@ struct KeychainStudyView: View {
 	var body: some View {
 		VStack(alignment: .center) {
 			StatusView(status: model.status)
+			EventView(key: studyWithAuthKey)
+			EventView(key: studyWithoutAuthKey)
+			
+			Spacer(minLength: 0)
 			
 			if model.status.canTest {
 				
@@ -114,7 +120,6 @@ struct KeychainStudyView: View {
 			
 		}
 		.buttonStyle(.borderedProminent)
-		.font(.title)
 		.padding()
 		.task {
 			await model.initialize()
@@ -122,7 +127,39 @@ struct KeychainStudyView: View {
 	}
 }
 
-
+struct EventView: View {
+	@Dependency(\.keychain) var keychain
+	let key: Keychain.Key
+	@State var event: Keychain.Event?
+	var body: some View {
+		VStack {
+			Text("Event for key: `\(key)`")
+			if let event {
+				switch event {
+				case let .added(addEvent):
+					Text("Added #\(addEvent.data.count)bytes")
+				case .removed:
+					Text("Removed data")
+				}
+			} else {
+				Text("Received no event yet.")
+			}
+		}
+		.background {
+			if let event {
+				event.added ? Color.green : (event.removed ? Color.orange : Color.gray)
+			} else {
+				Color.blue
+			}
+		}
+		.frame(maxWidth: .infinity)
+		.task {
+			for await event in keychain.events(forKey: key) {
+				self.event = event
+			}
+		}
+	}
+}
 
 struct StatusView: View {
 	let status: Status
@@ -133,6 +170,7 @@ struct StatusView: View {
 			Text("`\(status.description)`")
 			Spacer(minLength: 0)
 		}
+		.font(.headline)
 	}
 }
 
