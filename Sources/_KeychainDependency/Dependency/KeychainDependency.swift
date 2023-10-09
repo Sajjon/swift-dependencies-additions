@@ -15,9 +15,14 @@ extension DependencyValues {
 extension Keychain {
 	public struct Dependency: Sendable {
 		
+		public typealias Key = Keychain.Key
+		public typealias AuthenticationPrompt = Keychain.AuthenticationPrompt
+		public typealias AttributesWithAuth = Keychain.AttributesWithAuth
+		public typealias AttributesWithoutAuth = Keychain.AttributesWithoutAuth
+		
 		@_spi(Internals)
 		public typealias GetWithAuth = @Sendable (
-			_ key: String,
+			_ key: Key,
 			_ authenticationPrompt: AuthenticationPrompt,
 			_ ignoringAttributeSynchronizable: Bool
 		) async throws -> Data?
@@ -25,53 +30,92 @@ extension Keychain {
 		@_spi(Internals)
 		public typealias SetWithAuth =  @Sendable (
 			_ data: Data?,
-			_ key: String,
-			_ attributes: Keychain.AttributesWithAuth,
+			_ key: Key,
+			_ attributes: AttributesWithAuth,
 			_ ignoringAttributeSynchronizable: Bool
 		) async throws -> Void
 		
 		@_spi(Internals)
 		public typealias GetWithoutAuth = @Sendable (
-			_ key: String,
+			_ key: Key,
 			_ ignoringAttributeSynchronizable: Bool
 		) async throws -> Data?
 		
 		@_spi(Internals)
 		public typealias SetWithoutAuth = @Sendable (
 			_ data: Data?,
-			_ key: String,
-			_ attributes: Keychain.AttributesWithoutAuth,
+			_ key: Key,
+			_ attributes: AttributesWithoutAuth,
 			_ ignoringAttributeSynchronizable: Bool
 		) async throws -> Void
 		
 		@_spi(Internals)
-		public typealias Events = @Sendable (_ key: String) -> AsyncStream<Event>
+		public typealias GetSetIfNilWithAuth = @Sendable (
+			_ setIfNil: (value: Data, attributes: AttributesWithAuth),
+			_ key: Key,
+			_ authenticationPrompt: AuthenticationPrompt,
+			_ ignoringAttributeSynchronizable: Bool
+		) async throws -> (value: Data, wasNil: Bool)
+		
+		@_spi(Internals)
+		public typealias GetSetIfNilWithoutAuth = @Sendable (
+			_ setIfNil: (value: Data, attributes: AttributesWithoutAuth),
+			_ key: Key,
+			_ ignoringAttributeSynchronizable: Bool
+		) async throws -> (value: Data, wasNil: Bool)
+		
+		@_spi(Internals)
+		public typealias RemoveItem = @Sendable (
+			_ key: Key,
+			_ ignoringAttributeSynchronizable: Bool
+		) async throws -> Void
+		
+		@_spi(Internals)
+		public typealias RemoveAllItems = @Sendable () async throws -> Void
+		
+		@_spi(Internals)
+		public typealias Events = @Sendable (_ key: Key) -> AsyncStream<Event>
 		
 		let _getWithAuth: GetWithAuth
 		let _setWithAuth: SetWithAuth
 		let _getWithoutAuth: GetWithoutAuth
 		let _setWithoutAuth: SetWithoutAuth
+		let _getSetIfNilWithAuth: GetSetIfNilWithAuth
+		let _getSetIfNilWithoutAuth: GetSetIfNilWithoutAuth
+		let _removeItem: RemoveItem
+		let _removeAllItems: RemoveAllItems
 		let _events: Events
 		
 		@_spi(Internals)
 		public init(
 			getWithAuth: @escaping GetWithAuth,
+			getSetIfNilWithAuth: @escaping GetSetIfNilWithAuth,
 			setWithAuth: @escaping SetWithAuth,
+
 			getWithoutAuth: @escaping GetWithoutAuth,
+			getSetIfNilWithoutAuth: @escaping GetSetIfNilWithoutAuth,
 			setWithoutAuth: @escaping SetWithoutAuth,
+
+			removeItem: @escaping RemoveItem,
+			removeAllItems: @escaping RemoveAllItems,
 			events: @escaping Events
 		) {
 			self._getWithAuth = getWithAuth
+			self._getSetIfNilWithAuth = getSetIfNilWithAuth
 			self._setWithAuth = setWithAuth
+			
 			self._getWithoutAuth = getWithoutAuth
+			self._getSetIfNilWithoutAuth = getSetIfNilWithoutAuth
 			self._setWithoutAuth = setWithoutAuth
+			
+			self._removeItem = removeItem
+			self._removeAllItems = removeAllItems
 			self._events = events
 		}
 		
 		/// Returns the data requiring authentication associated with the specified key, using the provided authenticationPrompt
-		@_spi(Internals)
 		public func dataWithAuth(
-			forKey key: String,
+			forKey key: Key,
 			authenticationPrompt: AuthenticationPrompt,
 			ignoringAttributeSynchronizable: Bool = true
 		) async throws -> Data? {
@@ -79,44 +123,83 @@ extension Keychain {
 		}
 
 		/// Sets the value of the specified default key, which will require authentication,  configured with attributes.
-		@_spi(Internals)
 		public func setDataWithAuth(
 			_ data: Data?,
-			forKey key: String,
-			with attributes: Keychain.AttributesWithAuth,
+			forKey key: Key,
+			with attributes: AttributesWithAuth,
 			ignoringAttributeSynchronizable: Bool = true
 		) async throws {
 			try await self._setWithAuth(data, key, attributes, ignoringAttributeSynchronizable)
 		}
 		
+		/// Returns the data, which will require authentication, associated with the specified key if present,
+		/// else sets it to the specified value and returns either existing or new value with info about which value was used.
+		public func getDataWithAuth(
+			forKey key: Key,
+			setIfNil: (value: Data, attributes: AttributesWithAuth),
+			authenticationPrompt: AuthenticationPrompt,
+			ignoringAttributeSynchronizable: Bool = true
+		) async throws -> (value: Data, wasNil: Bool) {
+			try await self._getSetIfNilWithAuth(
+				setIfNil,
+				key,
+				authenticationPrompt,
+				ignoringAttributeSynchronizable
+			)
+		}
+		
 		/// Returns the data associated with the specified key.
-		@_spi(Internals)
 		public func dataWithoutAuth(
-			forKey key: String,
+			forKey key: Key,
 			ignoringAttributeSynchronizable: Bool = true
 		) async throws -> Data? {
 			try await self._getWithoutAuth(key, ignoringAttributeSynchronizable)
 		}
 		
 		/// Sets the value of the specified default key, configured with attributes.
-		@_spi(Internals)
 		public func setDataWithoutAuth(
 			_ data: Data?, 
-			forKey key: String,
-			with attributes: Keychain.AttributesWithoutAuth,
+			forKey key: Key,
+			with attributes: AttributesWithoutAuth,
 			ignoringAttributeSynchronizable: Bool = true
 		) async throws {
 			try await self._setWithoutAuth(data, key, attributes, ignoringAttributeSynchronizable)
+		}
+		
+		/// Returns the data associated with the specified key if present, else sets it to the specified
+		/// value and returns either existing or new value with info about which value was used.
+		public func getDataWithoutAuth(
+			forKey key: Key,
+			setIfNil: (value: Data, attributes: AttributesWithoutAuth),
+			ignoringAttributeSynchronizable: Bool = true
+		) async throws -> (value: Data, wasNil: Bool) {
+			try await self._getSetIfNilWithoutAuth(setIfNil, key, ignoringAttributeSynchronizable)
 		}
 		
 		/// An `AsyncStream` of events for a given `key` as they change. The stream
 		/// contains `added` and `removed` events.
 		/// - Parameter key: The key that references this user preference.
 		/// - Returns: An `AsyncSequence` of `event` values, excluding any initial values.
-		@_spi(Internals)
-		public func events(forKey key: String) -> AsyncStream<Event> {
+		public func events(forKey key: Key) -> AsyncStream<Event> {
 			self._events(key)
 		}
+		
+		/// Removes item for `key`.
+		/// - Parameters:
+		///   - key: key of item to remove
+		///   - ignoringAttributeSynchronizable: Specifies that both synchronizable and non-synchronizable results should be returned from a query.
+		public func removeItem(
+			forKey key: Key,
+			ignoringAttributeSynchronizable: Bool = true
+		) async throws -> Void {
+			try await self._removeItem(key, ignoringAttributeSynchronizable)
+		}
+		
+		/// Removes all items from keychain
+		public func removeAllItems() async throws -> Void {
+			try await self._removeAllItems()
+		}
+		
 	}
 }
 
@@ -134,7 +217,15 @@ extension Keychain.Dependency: DependencyKey {
 		
 		self = Keychain.Dependency { key, authenticationPrompt, ignoringAttributeSynchronizable in
 			try await actor.getDataWithAuth(
-				forKey: key, 
+				forKey: key,
+				authenticationPrompt: authenticationPrompt,
+				ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
+			)
+		} getSetIfNilWithAuth: { setIfNil, key, authenticationPrompt, ignoringAttributeSynchronizable in
+			try await actor.getDataWithAuthIfPresent(
+				forKey: key,
+				with: setIfNil.attributes,
+				elseSetTo: setIfNil.value,
 				authenticationPrompt: authenticationPrompt,
 				ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
 			)
@@ -157,6 +248,13 @@ extension Keychain.Dependency: DependencyKey {
 				forKey: key,
 				ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
 			)
+		} getSetIfNilWithoutAuth: { setIfNil, key, ignoringAttributeSynchronizable in
+			try await actor.getDataWithoutAuthIfPresent(
+				forKey: key,
+				with: setIfNil.attributes,
+				elseSetTo: setIfNil.value,
+				ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
+			)
 		} setWithoutAuth: { data, key, attributes, ignoringAttributeSynchronizable in
 			if let data {
 				try await actor.setDataWithoutAuth(
@@ -171,6 +269,13 @@ extension Keychain.Dependency: DependencyKey {
 					ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
 				)
 			}
+		} removeItem: { key, ignoringAttributeSynchronizable in
+			try await actor.removeItem(
+				forKey: key, 
+				ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
+			)
+		} removeAllItems: {
+			try await actor.removeAllItems()
 		} events: { key in
 			actor.events()
 		}

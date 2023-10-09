@@ -17,18 +17,14 @@ private let authRandomKey = "authRandomKey"
 final class KeychainStudy: ObservableObject {
 	
 	@Published var status: Status = .new
-	private let sut: KeychainActor
-	
-	init() {
-		sut = .init(service: "KeychainStudy")
-	}
+	@Dependency(\.keychain) var keychain
 	
 	func initialize() async {
 		status = .initializing
 		do {
-			try await sut.removeAllItems()
-			let noAuth = try await sut.getDataWithoutAuth(forKey: noAuthRandomKey)
-			let auth = try await sut.getDataWithoutAuth(forKey: authRandomKey)
+			try await keychain.removeAllItems()
+			let noAuth = try await keychain.dataWithoutAuth(forKey: noAuthRandomKey)
+			let auth = try await keychain.dataWithoutAuth(forKey: authRandomKey)
 			if noAuth == nil && auth == nil {
 				status = .initialized("keychain reset")
 			} else {
@@ -41,7 +37,7 @@ final class KeychainStudy: ObservableObject {
 	
 	func doTestAuth() async {
 		await _doTest {
-			try await self.sut
+			try await self.keychain
 				.authGetSavedDataElseSaveNewRandom(
 					key: "studyWithAuth"
 				)
@@ -50,7 +46,7 @@ final class KeychainStudy: ObservableObject {
 	
 	func doTestNoAuth() async {
 		await _doTest {
-			try await self.sut.noAuthGetSavedDataElseSaveNewRandom(
+			try await self.keychain.noAuthGetSavedDataElseSaveNewRandom(
 				key: "studyWithoutAuth"
 			)
 		}

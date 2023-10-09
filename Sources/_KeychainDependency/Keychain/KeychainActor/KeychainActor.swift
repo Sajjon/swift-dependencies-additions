@@ -112,6 +112,27 @@ extension KeychainActor {
 		}
 	}
 	
+	@discardableResult
+	@_spi(Internal) public func getDataWithoutAuthIfPresent(
+		forKey key: Key,
+		with attributes: Keychain.AttributesWithoutAuth,
+		elseSetTo new: Data,
+		ignoringAttributeSynchronizable: Bool = true
+	) async throws -> (value: Data, wasNil: Bool) {
+		if let value = try await getDataWithoutAuth(
+			forKey: key,
+			ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
+		) {
+			return (value, wasNil: false)
+		} else {
+			try await setDataWithoutAuth(
+				new,
+				forKey: key,
+				with: attributes
+			)
+			return (new, wasNil: true)
+		}
+	}
 }
 
 // MARK: API - Auth
@@ -161,6 +182,31 @@ extension KeychainActor {
 			dispatchPrecondition(condition: .notOnQueue(DispatchQueue.main))
 			return try $0.modifier(.init(authPrompt: authenticationPrompt))
 				.getData(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+		}
+	}
+
+	
+	@discardableResult
+	@_spi(Internal) public func getDataWithAuthIfPresent(
+		forKey key: Key,
+		with attributes: Keychain.AttributesWithAuth,
+		elseSetTo new: Data,
+		authenticationPrompt: AuthenticationPrompt,
+		ignoringAttributeSynchronizable: Bool = true
+	) async throws -> (value: Data, wasNil: Bool) {
+		if let value = try await getDataWithAuth(
+			forKey: key,
+			authenticationPrompt: authenticationPrompt,
+			ignoringAttributeSynchronizable: ignoringAttributeSynchronizable
+		) {
+			return (value, wasNil: false)
+		} else {
+			try await setDataWithAuth(
+				new,
+				forKey: key,
+				with: attributes
+			)
+			return (new, wasNil: true)
 		}
 	}
 
