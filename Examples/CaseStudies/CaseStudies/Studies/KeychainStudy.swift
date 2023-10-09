@@ -29,7 +29,11 @@ final class KeychainStudy: ObservableObject {
 			try await sut.removeAllItems()
 			let noAuth = try await sut.getDataWithoutAuth(forKey: noAuthRandomKey)
 			let auth = try await sut.getDataWithoutAuth(forKey: authRandomKey)
-			status = .initialized("Data nil? withAuth:\(auth == nil)/ withoutAuth:\(noAuth == nil)")
+			if noAuth == nil && auth == nil {
+				status = .initialized("keychain reset")
+			} else {
+				status = .failedToInitialize("Failed to remove items")
+			}
 		} catch {
 			status = .failedToInitialize("Failed to remove all items in keychain \(error)")
 		}
@@ -37,13 +41,18 @@ final class KeychainStudy: ObservableObject {
 	
 	func doTestAuth() async {
 		await _doTest {
-			try await self.sut.authGetSavedDataElseSaveNewRandom()
+			try await self.sut
+				.authGetSavedDataElseSaveNewRandom(
+					key: "studyWithAuth"
+				)
 		}
 	}
 	
 	func doTestNoAuth() async {
 		await _doTest {
-			try await self.sut.noAuthGetSavedDataElseSaveNewRandom()
+			try await self.sut.noAuthGetSavedDataElseSaveNewRandom(
+				key: "studyWithoutAuth"
+			)
 		}
 	}
 	

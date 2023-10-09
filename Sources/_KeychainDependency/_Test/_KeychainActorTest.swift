@@ -8,9 +8,6 @@
 import Foundation
 import KeychainAccess
 
-let authRandomKey = "authRandomDataKey"
-let noAuthRandomKey = "noAuthRandomDataKey"
-
 extension KeychainActor {
 	
 	@discardableResult
@@ -58,11 +55,17 @@ extension KeychainActor {
 
 extension KeychainActor {
 		
+	// We dont "want" `MainActor`, but we have it here to assert that
+	// the KeychainActor correctly runs its methods (actor isolated)
+	// on a different thread than main thread, since all AUTH operation
+	// must NOT be run on main thread.
 	@MainActor
 	@discardableResult
-	@_spi(Internal) public func authGetSavedDataElseSaveNewRandom() async throws -> Data {
+	@_spi(Internal) public func authGetSavedDataElseSaveNewRandom(
+		key: String
+	) async throws -> Data {
 		try await getDataWithAuthIfPresent(
-			forKey: authRandomKey,
+			forKey: key,
 			with: .init(accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: .biometryAny),
 			elseSetTo: .random(),
 			authenticationPrompt: "Keychain demo"
@@ -73,11 +76,18 @@ extension KeychainActor {
 
 extension KeychainActor {
 	
+	// We dont "want" `MainActor`, but we have it here to assert that
+	// the KeychainActor correctly runs its methods (actor isolated)
+	// on a different thread than main thread, since all AUTH operation
+	// must NOT be run on main thread, and even though this is using
+	// the `withoutAuth` variant, we could read/write with auth in between.
 	@MainActor
 	@discardableResult
-	@_spi(Internal) public func noAuthGetSavedDataElseSaveNewRandom() async throws -> Data {
+	@_spi(Internal) public func noAuthGetSavedDataElseSaveNewRandom(
+		key: String
+	) async throws -> Data {
 		try await getDataWithoutAuthIfPresent(
-			forKey: noAuthRandomKey,
+			forKey: key,
 			with: Keychain.AttributesWithoutAuth(),
 			elseSetTo: .random()
 		).data
